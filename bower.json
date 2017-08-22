@@ -1,0 +1,14 @@
+{
+  "name": "PSChat",
+  "version": "1.0.0",
+  "main": "path/to/main.css",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {
+    "jquery": "3.2.1",
+    "materialize": "0.100.1"
+  },
+  "devDependencies": {}
+}
