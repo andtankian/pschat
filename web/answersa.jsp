@@ -1,8 +1,9 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <% String sq = (String) request.getServletContext().getAttribute("sq");%>
+<% String sa = (String) request.getSession().getAttribute("sa");%>
 <!DOCTYPE html>
 <html>
-    <% if(sq == null) { %>
+    <% if(sq != null && sa == null) { %>
     <head>
         <meta charset="UTF-8">
         <!--Import Google Icon Font-->
