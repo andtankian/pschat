@@ -1,6 +1,8 @@
 package br.com.andtankian.endpoints.servlets;
 
+import br.com.andtankian.endpoints.utils.Constants;
 import java.io.IOException;
+import java.util.Set;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -33,6 +35,17 @@ public class SecurityAnswerServlet extends HttpServlet{
                 status = "1";
                 req.getSession().invalidate();
                 req.getSession(true).setAttribute("sa", "authenticated");
+                String nick = Constants.NICKNAMES[(int) (Math.random() * Constants.NICKNAMES.length)];
+                
+                for (Object object : (Set)req.getServletContext().getAttribute("chatters")) {
+                    if(nick.equals(object)) {
+                        nick = nick + Math.random() * 100;
+                    }
+                }
+                
+                ((Set)req.getServletContext().getAttribute("chatters")).add(nick);
+                req.getSession().setAttribute("nickname", nick);
+                
             } else {
                 /*Authenticated*/
                 message = "Resposta secreta errada.";
