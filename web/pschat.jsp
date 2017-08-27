@@ -37,6 +37,18 @@
             .send-button {
                 top: 40px;
             }
+
+            .messages {
+                height: 60vh !important;
+                overflow-y: auto;
+            }
+            
+            .alone-message {
+                border-radius: 7px;
+                padding: 8px;
+                display: table;
+                margin: 5px;
+            }   
         </style>
     </head>
     <body>
@@ -63,12 +75,15 @@
 
                 <div class="card-action">
                     <div class="row custom-row">
-                        <div class="input-field col s11">
-                            <textarea id="message" class="materialize-textarea flow-text" name="message" placeholder="Digite uma mensagem" rows="1"></textarea>
-                        </div>
-                        <div class="col s1 center-align">
-                            <button class="btn-floating btn-large waves-effect darken-1 send-button" title="Enviar"><i class="material-icons">send</i></button>
-                        </div>
+                        <form autocomplete="off" id="form-message">
+                            <div class="input-field col s11">
+                                <textarea id="message" class="materialize-textarea flow-text" name="message" placeholder="Digite uma mensagem" rows="1"></textarea>
+                            </div>
+                            <div class="col s1 center-align">
+                                <button class="btn-floating btn-large waves-effect darken-1 send-button" title="Enviar" type="submit"><i class="material-icons">send</i></button>
+                            </div>
+                            <input type="hidden" value="<%= request.getSession().getAttribute("nickname")%>" name="chatter"/>
+                        </form>
                     </div>
                 </div>
             </div>          
@@ -79,10 +94,26 @@
         <script type="text/javascript" src="/pschat/bower_components/izitoast/dist/js/iziToast.min.js"></script>
         <script>
             $(function () {
+                var mynick = "<%= request.getSession().getAttribute("nickname")%>";
                 var rtconnection = new WebSocket("ws://" + window.location.host + window.location.pathname);
                 rtconnection.onopen = function () {
                     console.log("Conectado com sucesso nesta instância do PSChat");
                 };
+
+                rtconnection.onmessage = function (message) {
+                    var j = JSON.parse(message.data);
+                    var side, brightness;
+                    if(j.chatter === mynick){
+                        side = "right";
+                        brightness = "lighten-4";
+                    } else {
+                        side = "left"; 
+                        brightness = "lighten-5";
+                            }
+                    var m = $("<div class='custom-row row'><div style='opacity: 0;' class='alone-message blue-grey " + brightness + " " + side + "'><h6 style='margin: 5px; text-transform: uppercase;'>" + j.chatter + "</h6><p>" + j.message + "</p></div></div>");
+                    $(".messages").append(m).scrollTop($(".messages").height());
+                    m.find(".alone-message").animate({opacity: 1}, 400);
+                }
 
                 var chatters = [];
                 function getChatters() {
@@ -92,7 +123,7 @@
                             if (j.status == 1) {
                                 $.each(j.chatters, function (index, element) {
                                     $(".nicknames").append('<div class="chip center-align">\
-                                        ' + element.nickname +'\
+                                        ' + element.nickname + '\
                                       </div><br/>');
                                 });
                             }
@@ -102,9 +133,41 @@
                 }
                 ;
                 getChatters();
+
+                iziToast.show({position: "topCenter", title: '<%=request.getSession().getAttribute("nickname")%>,', message: "Este será seu apelido."});
+
+
+                var message = $("textarea#message");
+                message.on("keypress", function (e) {
+                    if (e.keyCode === 13 && !e.shiftKey) {
+                        shouldSend(message);
+                    }
+                });
+
+                var form = $("#form-message");
+                form.on("submit", function (e) {
+                    e.preventDefault();
+                    shouldSend($("[name='message']"));
+                });
                 
-                iziToast.show({position: "topRight", title: '<%=request.getSession().getAttribute("nickname")%>,', message: "Este será seu apelido."})
+                message.focus();
             });
+
+            function shouldSend(message) {
+                var val = message.val();
+                if (val === undefined || val === "")
+                    return false;
+                else {
+                    $.ajax("/pschat/talk/private/secure/chat/send", {
+                        method: "POST",
+                        data: $("form#form-message").serialize(),
+                        complete: function (data) {
+                            message.val('').blur();
+                            message.focus();
+                        }
+                    });
+                }
+            }
         </script>
     </body>
 </html>
