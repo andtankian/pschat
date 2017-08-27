@@ -22,13 +22,21 @@
                 margin: 0px !important;
                 border-right: 0.5px solid rgba(0, 0, 0, 0.1);
                 overflow-y: auto;
-                height: 60vh;
+                overflow-x: hidden;
+                height: 65vh;
+            }
+
+            .card-action {
+                overflow: hidden;
+                height: 18vh !important;
+                padding: 5px !important;
             }
 
             .chat-content {
                 margin-bottom: 0px !important;
-                height: 60vh !important;
+                height: 65vh !important;
             }
+
 
             .custom-row {
                 margin: 0px !important;
@@ -39,16 +47,30 @@
             }
 
             .messages {
-                height: 60vh !important;
+                height: 65vh !important;
                 overflow-y: auto;
             }
-            
+
             .alone-message {
                 border-radius: 7px;
                 padding: 8px;
                 display: table;
                 margin: 5px;
-            }   
+            }
+
+            @media only screen and (max-width: 600px) {
+                .chatters {
+                    height: 20vh !important;
+                }
+                .card-action {
+                    overflow: hidden;
+                    height: 18vh !important;
+                    padding: 5px !important;
+                }
+                .messages {
+                    height: 40vh !important;
+                }
+            } 
         </style>
     </head>
     <body>
@@ -57,7 +79,7 @@
                 <div class="card-content blue-grey white-text">
                     <span class="card-title">PSChat</span>
                 </div>
-                <div class="chat-content row">
+                <div class="chat-content row custom-row">
                     <div class="col s12 m2">
                         <div class="chatters">
                             <h5 class="center-align">Povão conectado</h5>
@@ -72,15 +94,14 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="card-action">
-                    <div class="row custom-row">
+                <div class="card-action custom-row">
+                    <div class="row custom-row messaging">
                         <form autocomplete="off" id="form-message">
-                            <div class="input-field col s11">
+                            <div class="input-field col s10">
                                 <textarea id="message" class="materialize-textarea flow-text" name="message" placeholder="Digite uma mensagem" rows="1"></textarea>
                             </div>
-                            <div class="col s1 center-align">
-                                <button class="btn-floating btn-large waves-effect darken-1 send-button" title="Enviar" type="submit"><i class="material-icons">send</i></button>
+                            <div class="col s2 center-align">
+                                <button class="btn-floating waves-effect darken-1 send-button" title="Enviar" type="submit"><i class="material-icons">send</i></button>
                             </div>
                             <input type="hidden" value="<%= request.getSession().getAttribute("nickname")%>" name="chatter"/>
                         </form>
@@ -96,23 +117,25 @@
             $(function () {
                 var mynick = "<%= request.getSession().getAttribute("nickname")%>";
                 var rtconnection = new WebSocket("ws://" + window.location.host + window.location.pathname);
-                rtconnection.onopen = function () {
-                    console.log("Conectado com sucesso nesta instância do PSChat");
-                };
 
                 rtconnection.onmessage = function (message) {
                     var j = JSON.parse(message.data);
-                    var side, brightness;
-                    if(j.chatter === mynick){
-                        side = "right";
-                        brightness = "lighten-4";
+
+                    if (j.type != undefined && j.type === "newchatter") {
+                        getChatters();
                     } else {
-                        side = "left"; 
-                        brightness = "lighten-5";
-                            }
-                    var m = $("<div class='custom-row row'><div style='opacity: 0;' class='alone-message blue-grey " + brightness + " " + side + "'><h6 style='margin: 5px; text-transform: uppercase;'>" + j.chatter + "</h6><p>" + j.message + "</p></div></div>");
-                    $(".messages").append(m).scrollTop($(".messages").height());
-                    m.find(".alone-message").animate({opacity: 1}, 400);
+                        var side, brightness;
+                        if (j.chatter === mynick) {
+                            side = "right";
+                            brightness = "lighten-4";
+                        } else {
+                            side = "left";
+                            brightness = "lighten-5";
+                        }
+                        var m = $("<div class='custom-row row'><div style='opacity: 0;' class='alone-message blue-grey " + brightness + " " + side + "'><h6 style='margin: 5px; text-transform: uppercase;'>" + j.chatter + "</h6><p>" + j.message.replace(/astnlast/g, "<br/>") + "</p></div></div>");
+                        $(".messages").append(m).scrollTop($(".messages").height());
+                        m.find(".alone-message").animate({opacity: 1}, 400);
+                    }
                 }
 
                 var chatters = [];
@@ -121,6 +144,7 @@
                         success: function (data) {
                             var j = JSON.parse(data);
                             if (j.status == 1) {
+                                $(".nicknames").html("");
                                 $.each(j.chatters, function (index, element) {
                                     $(".nicknames").append('<div class="chip center-align">\
                                         ' + element.nickname + '\
@@ -132,7 +156,6 @@
                     });
                 }
                 ;
-                getChatters();
 
                 iziToast.show({position: "topCenter", title: '<%=request.getSession().getAttribute("nickname")%>,', message: "Este será seu apelido."});
 
@@ -149,15 +172,19 @@
                     e.preventDefault();
                     shouldSend($("[name='message']"));
                 });
-                
+
                 message.focus();
             });
 
             function shouldSend(message) {
                 var val = message.val();
-                if (val === undefined || val === "")
+                if (val === undefined || val === "") {
+                    message.val('').blur();
+                    setTimeout(function () {
+                        message.focus();
+                    }, 10);
                     return false;
-                else {
+                } else {
                     $.ajax("/pschat/talk/private/secure/chat/send", {
                         method: "POST",
                         data: $("form#form-message").serialize(),

@@ -21,8 +21,12 @@ public class SendMessageServlet extends HttpServlet{
         
         String who = req.getParameter("chatter");
         String message = req.getParameter("message");
+        if(message.contains("\n") || message.contains("\r")){
+            message = message.replaceAll("\n", " ");
+            message = message.replaceAll("\r", "astnlast");
+        }
         StringBuilder sb = new StringBuilder("{\"chatter\":\"");
-        sb.append(who).append("\", \"message\":\"")
+        sb.append(who).append("\",\"message\":\"")
                 .append(message).append("\"}");
         
         handler.notify(sb.toString());        

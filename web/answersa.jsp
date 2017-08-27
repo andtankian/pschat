@@ -65,6 +65,8 @@
                                 setTimeout(function(){
                                     window.location.href = "/pschat/talk/private/secure/chat";
                                 }, 2000);
+                            } else {
+                                iziToast.error({title: "VISH", message: ""});
                             }
 
                         },

@@ -27,6 +27,7 @@ public class PSChatEndpoint {
         app = (ServletContext) config.getUserProperties().get("servletContext");
         handler = (IWebSocketSessionHandler) app.getAttribute("pschatrealtime");
         handler.add(session);
+        handler.notify("{\"type\":\"newchatter\"}");
     }
 
     @OnClose

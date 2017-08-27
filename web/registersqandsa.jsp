@@ -60,18 +60,9 @@
                         method: "POST",
                         data: $(this).serialize(),
                         success: function (data) {
-                            console.log(data);
                             var j = JSON.parse(data);
                             if (j.status == 1) {
-                                iziToast.show({
-                                    color: "green",
-                                    message: "Pergunta cadastrada com sucesso. Aguarde!",
-                                    timeout: 2000,
-                                    position: "bottomCenter"
-                                });
-                                setTimeout(function () {
-                                    window.location.href = "/pschat/talk/private/secure/chat";
-                                }, 2000);
+                                window.location.href = "/pschat/talk/private/secure/chat";
                             } else {
 
                             }
