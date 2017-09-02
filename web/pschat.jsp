@@ -133,7 +133,7 @@
                             brightness = "lighten-5";
                         }
                         var m = $("<div class='custom-row row'><div style='opacity: 0;' class='alone-message blue-grey " + brightness + " " + side + "'><h6 style='margin: 5px; text-transform: uppercase;'>" + j.chatter + "</h6><p>" + j.message.replace(/astnlast/g, "<br/>") + "</p></div></div>");
-                        $(".messages").append(m).scrollTop($(".messages").height());
+                        $(".messages").append(m).scrollTop($(".messages")[0].scrollHeight);
                         m.find(".alone-message").animate({opacity: 1}, 400);
                     }
                 }
